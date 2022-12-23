@@ -9,12 +9,12 @@ from app.enums import *
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, nullable=False)
-    cin = Column(String, primary_key=True, nullable=False, unique=True)
+    cin = Column(String, nullable=False, unique=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
-    age = Column(Date, nullable=False)
+    age = Column(Integer, nullable=False)
     gender = Column(Enum(Gender), nullable=False)
     active = Column(Boolean, nullable=False, default=True)
     confirmed = Column(Boolean, nullable=False, default=False)
