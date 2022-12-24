@@ -10,9 +10,15 @@ class OurBaseModel(BaseModel):
 
 
 class Car(OurBaseModel):
-    car_name: str = Field(min_length=4)
+    car_name: str = Field(min_length=2)
     car_type: str = Field(min_length=4)
     description: str = Field(min_length=4)
+
+
+class EditCar(OurBaseModel):
+    car_name: Optional[str] = Field(min_length=2)
+    car_type: Optional[str] = Field(min_length=4)
+    description: Optional[str] = Field(min_length=4)
 
 
 class CarOut(OurBaseModel):

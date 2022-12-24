@@ -74,3 +74,33 @@ def get_cars(db: Session = Depends(get_db), current_user=Depends(oauth2.get_curr
         message="all cars",
         status=status.HTTP_200_OK
     )
+
+
+@router.patch('/{id}', response_model=schemas.CarOut, status_code=status.HTTP_200_OK)
+def update_car(id: int, car: schemas.EditCar, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    car_to_update = db.query(models.Car).filter(models.Car.id == id)
+    db_car = car_to_update.first()
+    if not db_car:
+        return {
+            "status": status.HTTP_404_NOT_FOUND,
+            "message": "Car not found"
+        }
+    try:
+        car_data = car.dict(exclude_unset=True)
+        for key, value in car_data.items():
+            setattr(db_car, key, value)
+        db.add(db_car)
+        db.commit()
+        db.refresh(db_car)
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.CarOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.CarOut(
+        **db_car.__dict__,
+        status=status.HTTP_200_OK,
+        message="User updated successfully"
+    )
