@@ -24,6 +24,12 @@ class CarOut(OurBaseModel):
     status: Optional[int] = None
 
 
+class CarsOut(OurBaseModel):
+    car_list: Optional[list[CarOut]] = []
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
 class User(OurBaseModel):
     cin: str = Field(max_length=8, min_length=8)
     first_name: str = Field(min_length=3)

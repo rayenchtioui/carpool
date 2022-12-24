@@ -34,7 +34,7 @@ def create_car(car: schemas.Car, db: Session = Depends(get_db), current_user=Dep
     )
 
 
-@router.delete("/delete", status_code=status.HTTP_200_OK)
+@router.delete("/delete", response_model=schemas.CarOut, status_code=status.HTTP_200_OK)
 def delete_car(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     db_car = db.query(models.Car).filter(models.Car.id == id).first()
     car_to_delete = db_car
@@ -57,4 +57,20 @@ def delete_car(id: int, db: Session = Depends(get_db), current_user=Depends(oaut
         **car_to_delete.__dict__,
         status=status.HTTP_202_ACCEPTED,
         message="Car Deleted successfully "
+    )
+
+
+@router.get('/get_cars', response_model=schemas.CarsOut, status_code=status.HTTP_200_OK)
+def get_cars(db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    db_cars = db.query(models.Car).filter(
+        models.Car.owner_id == current_user.id).all()
+    if not db_cars:
+        return {
+            "status": status.HTTP_404_NOT_FOUND,
+            "message": "No cars were found yet!"
+        }
+    return schemas.CarsOut(
+        car_list=[schemas.CarOut(**car.__dict__) for car in db_cars],
+        message="all cars",
+        status=status.HTTP_200_OK
     )

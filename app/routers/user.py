@@ -75,7 +75,6 @@ async def get_user(id: int, db: Session = Depends(get_db)):
             status=status.HTTP_404_NOT_FOUND,
             message=f"User with id: {id} does not exist."
         )
-    print(db_user.__dict__)
     return schemas.UserOut(
         **db_user.__dict__,
         message=f"User with id {id}",
