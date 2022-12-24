@@ -9,15 +9,40 @@ class OurBaseModel(BaseModel):
         orm_mode = True
 
 
+class Car(OurBaseModel):
+    car_name: str = Field(min_length=4)
+    car_type: str = Field(min_length=4)
+    description: str = Field(min_length=4)
+
+
+class CarOut(OurBaseModel):
+    car_name: Optional[str] = None
+    car_type: Optional[str] = None
+    description: Optional[str] = None
+    owner_id: Optional[str] = None
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
 class User(OurBaseModel):
     cin: str = Field(max_length=8, min_length=8)
-    first_name: str
-    last_name: str
+    first_name: str = Field(min_length=3)
+    last_name: str = Field(min_length=3)
     password: str = Field(min_length=6)
-    confirmed_password: str
+    confirmed_password: str = Field(min_length=6)
     email: EmailStr
-    age: int
+    age: int = Field(gt=13)
     gender: Gender
+
+
+class EditUser(OurBaseModel):
+    first_name: Optional[str] = Field(None, min_length=3)
+    last_name: Optional[str] = Field(None, min_length=3)
+    email: Optional[EmailStr] = Field(None)
+    cin: Optional[str] = Field(None, min_length=8, max_length=8)
+    age: Optional[int] = Field(None, gt=13)
+    active: Optional[bool]
+    confirmed: Optional[bool]
 
 
 class UserOut(OurBaseModel):

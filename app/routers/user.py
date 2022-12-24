@@ -1,4 +1,5 @@
 import uuid
+from operator import and_, or_
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -6,7 +7,7 @@ from ..routers.emailUtil import send_email
 from datetime import timedelta, datetime
 from sqlalchemy.exc import SQLAlchemyError
 from ..config import settings
-from app import schemas, models, utils, enums
+from app import schemas, models, utils, enums, oauth2
 from .error import add_error
 from .confirmationCode import add_confirmation_code
 
@@ -79,4 +80,45 @@ async def create_user(id: int, db: Session = Depends(get_db)):
         **db_user.__dict__,
         message=f"User with id {id}",
         status=status.HTTP_200_OK
+    )
+
+
+@router.patch('/{id}', response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
+def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    user_to_update = db.query(models.User).filter(models.User.id == id)
+    db_user = user_to_update.first()
+    if not db_user:
+        return schemas.UserOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="User does not exist"
+        )
+
+    used_email = db.query(models.User).filter(
+        and_(models.User.email == user.email, models.User.id != id))
+    if used_email.first():
+        return schemas.UserOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Email already used"
+        )
+
+    try:
+        db_user = db.query(models.User).filter(models.User.id ==
+                                               id).first()
+        user_data = user.dict(exclude_unset=True)
+        for key, value in user_data.items():
+            setattr(db_user, key, value)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.UserOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.UserOut(
+        **user_to_update.__dict__,
+        status=status.HTTP_200_OK,
+        message="User updated successfully"
     )

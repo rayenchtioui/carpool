@@ -45,6 +45,11 @@ def login_user(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Sess
             "email": user.email,
         }
     }
+    access_token = oauth2.create_access_token(data=data)
+    return schemas.Token(access_token=access_token,
+                         token_type="bearer",
+                         status=status.HTTP_200_OK
+                         )
 
 
 @router.post('/forgotPassword', response_model=schemas.ForgotPasswordOut)
