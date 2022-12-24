@@ -32,3 +32,29 @@ def create_car(car: schemas.Car, db: Session = Depends(get_db), current_user=Dep
         message="Car  created successfully."
 
     )
+
+
+@router.delete("/delete", status_code=status.HTTP_200_OK)
+def delete_car(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    db_car = db.query(models.Car).filter(models.Car.id == id).first()
+    car_to_delete = db_car
+    if not db_car:
+        return schemas.CarOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="Car not found!"
+        )
+    try:
+        db.delete(db_car)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.CarOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.CarOut(
+        **car_to_delete.__dict__,
+        status=status.HTTP_202_ACCEPTED,
+        message="Car Deleted successfully "
+    )
