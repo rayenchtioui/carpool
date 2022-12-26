@@ -71,6 +71,11 @@ class UserOut(OurBaseModel):
     status: Optional[int] = None
 
 
+class UserDelete(OurBaseModel):
+    password: str = Field(min_length=6)
+    confirmed_password: str = Field(max_length=6)
+
+
 class UserLogin(OurBaseModel):
     email: EmailStr
     password: str

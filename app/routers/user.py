@@ -101,8 +101,6 @@ def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), 
         )
 
     try:
-        db_user = db.query(models.User).filter(models.User.id ==
-                                               id).first()
         user_data = user.dict(exclude_unset=True)
         for key, value in user_data.items():
             setattr(db_user, key, value)
@@ -121,3 +119,34 @@ def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), 
         status=status.HTTP_200_OK,
         message="User updated successfully"
     )
+
+
+@router.delete('/delete_account', response_model=schemas.UserOut, status_code=status.HTTP_202_ACCEPTED)
+def delete_user_account(user: schemas.UserDelete, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    if user.password != user.confirmed_password:
+        return {
+            "status": status.HTTP_400_BAD_REQUEST,
+            "message": "Passwords must match"
+        }
+    hashed_password = utils.hash_password(user.password)
+    db_user = db.query(models.User).filter(
+        models.User.password == hashed_password).first()
+    if not db_user:
+        return schemas.Token(
+            message="Invalid Credentials",
+            status=status.HTTP_404_NOT_FOUND
+        )
+    try:
+        db.delete(db_user)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.UserOut(
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="There is a problem try again"
+        )
+    return {
+        "status": status.HTTP_202_ACCEPTED,
+        "message": "Your account has been deleted successfully"
+    }
