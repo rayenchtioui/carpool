@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, fields
+from pydantic import BaseModel, EmailStr, Field, fields, validator
 from typing import Optional
 from datetime import datetime
 from app.enums import Gender, City, CodeStatus
@@ -79,6 +79,42 @@ class UserDelete(OurBaseModel):
 class UserLogin(OurBaseModel):
     email: EmailStr
     password: str
+
+
+class Pool(OurBaseModel):
+    description: str
+    date_depart: datetime = None
+    available_seats: int = Field(gt=0, lt=5)
+    beg_dest: City
+    end_dest: City
+    price: float
+    car_id: int
+
+    @validator('date_depart')
+    def validate_date_depart(cls, value):
+        if value and value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value
+
+
+class PoolOut(OurBaseModel):
+    id: Optional[int] = None
+    description: Optional[str] = None
+    data_depart: Optional[datetime] = None
+    available_seats: Optional[int] = None
+    beg_dest: Optional[City] = None
+    end_dest: Optional[City] = None
+    price: Optional[float] = None
+    driver_id: Optional[int] = None
+    car_id: Optional[int] = None
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
+class PoolsOut(OurBaseModel):
+    pool_list: Optional[list[PoolOut]] = []
+    message: Optional[str] = None
+    status: Optional[int] = None
 
 
 class ConfirmationCode(OurBaseModel):
