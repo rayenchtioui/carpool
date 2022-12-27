@@ -100,7 +100,7 @@ class Pool(OurBaseModel):
 class PoolOut(OurBaseModel):
     id: Optional[int] = None
     description: Optional[str] = None
-    data_depart: Optional[datetime] = None
+    date_depart: Optional[datetime] = None
     available_seats: Optional[int] = None
     beg_dest: Optional[City] = None
     end_dest: Optional[City] = None
@@ -113,6 +113,25 @@ class PoolOut(OurBaseModel):
 
 class PoolsOut(OurBaseModel):
     pool_list: Optional[list[PoolOut]] = []
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
+class Pooling(OurBaseModel):
+
+    description: Optional[str] = None
+    date_depart: Optional[datetime] = None
+    available_seats: Optional[int] = None
+    beg_dest: Optional[City] = None
+    end_dest: Optional[City] = None
+    price: Optional[float] = None
+    driver_first_name: Optional[str] = None
+    driver_last_name: Optional[str] = None
+    car_name: Optional[str] = None
+
+
+class PoolingOut(OurBaseModel):
+    pooling_list: Optional[list[Pooling]] = []
     message: Optional[str] = None
     status: Optional[int] = None
 

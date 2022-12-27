@@ -1,7 +1,7 @@
 import uuid
 from operator import and_, or_
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from ..database import get_db
 from ..routers.emailUtil import send_email
 from datetime import timedelta, datetime
@@ -44,4 +44,66 @@ def create_pooling(pooling: schemas.Pool, db: Session = Depends(get_db), current
         **db_pooling.__dict__,
         status=status.HTTP_201_CREATED,
         message="Pooling created successfully"
+    )
+
+
+@router.get('/pool', response_model=schemas.PoolsOut, status_code=status.HTTP_200_OK)
+def get_users_pools(db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    db_pools = db.query(models.Pooling).filter(
+        models.Pooling.driver_id == current_user.id
+    ).all()
+    if not db_pools:
+        return schemas.PoolsOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="No pools found!"
+        )
+    return schemas.PoolsOut(
+        pool_list=[schemas.PoolOut(**pool.__dict__) for pool in db_pools],
+        message="all pools",
+        status=status.HTTP_200_OK
+    )
+
+
+@router.get('/pools', response_model=schemas.PoolingOut, status_code=status.HTTP_200_OK)
+def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    db_pooling = db.query(models.Pooling).all()
+    if not db_pooling:
+        return schemas.PoolingOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="No available pools"
+        )
+
+    pools = db.query(models.Pooling, models.User, models.Car).join(
+        models.User, models.Pooling.driver_id == models.User.id, isouter=True).join(
+        models.Car, models.Pooling.car_id == models.Car.id, isouter=True).with_entities(
+        models.Pooling.description,
+        models.Pooling.date_depart,
+        models.Pooling.available_seats,
+        models.Pooling.beg_dest,
+        models.Pooling.end_dest,
+        models.Pooling.price,
+        models.User.first_name.label("driver_first_name"),
+        models.User.last_name.label("driver_last_name"),
+        models.Car.car_name.label("car_name")
+    ).all()
+    pooling_out = schemas.PoolingOut()
+    pooling_list = []
+
+    for result in pools:
+        pooling = schemas.Pooling()
+        pooling.description = result.description
+        pooling.date_depart = result.date_depart
+        pooling.available_seats = result.available_seats
+        pooling.beg_dest = result.beg_dest
+        pooling.end_dest = result.end_dest
+        pooling.price = result.price
+        pooling.driver_first_name = result.driver_first_name
+        pooling.driver_last_name = result.driver_last_name
+        pooling.car_name = result.car_name
+        pooling_list.append(pooling)
+
+    return schemas.PoolingOut(
+        pooling_list=pooling_list,
+        message="all pools",
+        status=status.HTTP_200_OK
     )
