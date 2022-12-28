@@ -9,6 +9,32 @@ class OurBaseModel(BaseModel):
         orm_mode = True
 
 
+class Review(OurBaseModel):
+    description: str = Field(min_length=6)
+    stars: int = Field(gt=-1, lt=6)
+    user_id: int
+
+
+class ReviewOut(OurBaseModel):
+    description: Optional[str]
+    stars: Optional[int]
+    user_id: Optional[int]
+    reviewer_id: Optional[int]
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
+class ReviewsOut(OurBaseModel):
+    review_list: Optional[list[ReviewOut]] = []
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
+class EditReview(OurBaseModel):
+    description: Optional[str] = Field(min_length=6)
+    stars: Optional[int] = Field(gt=-1, lt=6)
+
+
 class Car(OurBaseModel):
     car_name: str = Field(min_length=2)
     car_type: str = Field(min_length=4)

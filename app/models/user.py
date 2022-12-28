@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 from app.database import Base
 from app.enums import *
+from .review import Review
 
 
 class User(Base):
