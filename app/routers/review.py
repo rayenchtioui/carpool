@@ -97,3 +97,31 @@ def update_review(id: int, review: schemas.EditReview, db: Session = Depends(get
         status=status.HTTP_200_OK,
         message="User updated successfully"
     )
+
+
+@router.delete("/delete/{id}", response_model=schemas.ReviewOut, status_code=status.HTTP_200_OK)
+def delete_car(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    # query to verify that the review id exists and belongs to current user logged in
+    db_review = db.query(models.Review).filter(
+        and_(models.Review.id == id, models.Review.reviewer_id == current_user.id)).first()
+    review_to_delete = db_review
+    if not db_review:
+        return schemas.ReviewOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="Review not found!"
+        )
+    try:
+        db.delete(db_review)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.ReviewOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.CarOut(
+        **review_to_delete.__dict__,
+        status=status.HTTP_202_ACCEPTED,
+        message="Review Deleted successfully "
+    )
