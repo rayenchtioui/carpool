@@ -36,7 +36,9 @@ def create_car(car: schemas.Car, db: Session = Depends(get_db), current_user=Dep
 
 @router.delete("/delete", response_model=schemas.CarOut, status_code=status.HTTP_200_OK)
 def delete_car(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
-    db_car = db.query(models.Car).filter(models.Car.id == id).first()
+    # query to verify that the Car id exists and belongs to current user logged
+    db_car = db.query(models.Car).filter(
+        and_(models.Car.id == id, models.Car.owner_id == current_user.id)).first()
     car_to_delete = db_car
     if not db_car:
         return schemas.CarOut(
