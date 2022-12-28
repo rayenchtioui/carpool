@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field, fields, validator
+from pydantic import BaseModel, EmailStr, Field, fields, validator, root_validator
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from app.enums import Gender, City, CodeStatus
 
 
@@ -94,7 +94,41 @@ class Pool(OurBaseModel):
     def validate_date_depart(cls, value):
         if value and value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
+        if value and value < datetime.utcnow().replace(tzinfo=timezone.utc):
+            raise ValueError("date_depart must not be in the past")
         return value
+
+    @root_validator()
+    def validate_beg_dest_and_end_dest(cls, values):
+        if values.get('beg_dest') == values.get('end_dest'):
+            raise ValueError(
+                "beg_dest and end_dest must not have the same value")
+        return values
+
+
+class EditPool(OurBaseModel):
+    description: Optional[str]
+    date_depart: Optional[datetime]
+    available_seats: Optional[int] = Field(gt=0, lt=5)
+    beg_dest: Optional[City]
+    end_dest: Optional[City]
+    price: Optional[float]
+    car_id: Optional[int]
+
+    @validator('date_depart')
+    def validate_date_depart(cls, value):
+        if value and value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        if value and value < datetime.utcnow().replace(tzinfo=timezone.utc):
+            raise ValueError("date_depart must not be in the past")
+        return value
+
+    @root_validator()
+    def validate_beg_dest_and_end_dest(cls, values):
+        if values.get('beg_dest') == values.get('end_dest'):
+            raise ValueError(
+                "beg_dest and end_dest must not have the same value")
+        return values
 
 
 class PoolOut(OurBaseModel):

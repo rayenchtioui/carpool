@@ -109,7 +109,7 @@ def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oaut
     )
 
 
-@router.delete('/delete', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
+@router.delete('/delete/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
 def delete_pool(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     # query to verify that the pool id exists and belongs to the current user logged in
     db_pool = db.query(models.Pooling).filter(
@@ -134,4 +134,36 @@ def delete_pool(id: int, db: Session = Depends(get_db), current_user=Depends(oau
         **pool_to_delete.__dict__,
         status=status.HTTP_202_ACCEPTED,
         message="Pool deleted successfully"
+    )
+
+
+@router.patch('/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
+def update_pool(id: int, pool: schemas.EditPool, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+
+    pool_to_update = db.query(models.Pooling).filter(
+        and_(models.Pooling.id == id, models.Pooling.driver_id == current_user.id))
+    db_pool = pool_to_update.first()
+    if not db_pool:
+        return {
+            "status": status.HTTP_404_NOT_FOUND,
+            "message": "Pool not found"
+        }
+    try:
+        pool_data = pool.dict(exclude_unset=True)
+        for key, value in pool_data.items():
+            setattr(db_pool, key, value)
+        db.add(db_pool)
+        db.commit()
+        db.refresh(db_pool)
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.PoolOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.PoolOut(
+        **db_pool.__dict__,
+        status=status.HTTP_200_OK,
+        message="Pool updated successfully"
     )

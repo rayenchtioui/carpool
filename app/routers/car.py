@@ -34,7 +34,7 @@ def create_car(car: schemas.Car, db: Session = Depends(get_db), current_user=Dep
     )
 
 
-@router.delete("/delete", response_model=schemas.CarOut, status_code=status.HTTP_200_OK)
+@router.delete("/delete/{id}", response_model=schemas.CarOut, status_code=status.HTTP_200_OK)
 def delete_car(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     # query to verify that the Car id exists and belongs to current user logged
     db_car = db.query(models.Car).filter(
@@ -80,7 +80,8 @@ def get_cars(db: Session = Depends(get_db), current_user=Depends(oauth2.get_curr
 
 @router.patch('/{id}', response_model=schemas.CarOut, status_code=status.HTTP_200_OK)
 def update_car(id: int, car: schemas.EditCar, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
-    car_to_update = db.query(models.Car).filter(models.Car.id == id)
+    car_to_update = db.query(models.Car).filter(
+        and_(models.Car.id == id, models.Car.owner_id == current_user.id))
     db_car = car_to_update.first()
     if not db_car:
         return {
