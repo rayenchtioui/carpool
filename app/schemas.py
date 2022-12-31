@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, fields, validator, root_validator
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.enums import Gender, City, CodeStatus
 
 
@@ -62,25 +62,33 @@ class CarsOut(OurBaseModel):
     status: Optional[int] = None
 
 
+def validate_age(dt: datetime):
+    sixteen_years_ago = datetime.now() - timedelta(days=365 * 16)
+    return dt > sixteen_years_ago
+
+
 class User(OurBaseModel):
-    cin: str = Field(max_length=8, min_length=8)
-    first_name: str = Field(min_length=3)
-    last_name: str = Field(min_length=3)
+    cin: str = Field(regex='^[0-9]{8}$')
+    first_name: str = Field(min_length=3, regex='^[a-zA-Z ]*$', example='flen')
+    last_name: str = Field(
+        min_length=3, regex='^[a-zA-Z ]*$', example='ben foulen')
     password: str = Field(min_length=6)
     confirmed_password: str = Field(min_length=6)
     email: EmailStr
-    age: int = Field(gt=13)
+    age: datetime = Field(validator=validate_age)
+    phone: str = Field(regex='^[0-9]{8}$')
     gender: Gender
 
 
 class EditUser(OurBaseModel):
-    first_name: Optional[str] = Field(None, min_length=3)
-    last_name: Optional[str] = Field(None, min_length=3)
-    email: Optional[EmailStr] = Field(None)
-    cin: Optional[str] = Field(None, min_length=8, max_length=8)
-    age: Optional[int] = Field(None, gt=13)
-    active: Optional[bool]
-    confirmed: Optional[bool]
+    first_name: Optional[str] = Field(
+        min_length=3, regex='^[a-zA-Z ]*$', example='flen')
+    last_name: Optional[str] = Field(
+        min_length=3, regex='^[a-zA-Z ]*$', example='ben foulen')
+    cin: Optional[str] = Field(regex='^[0-9]{8}$')
+    email: Optional[EmailStr]
+    age: Optional[datetime] = Field(validator=validate_age)
+    phone: Optional[str] = Field(regex='^[0-9]{8}$')
 
 
 class UserOut(OurBaseModel):
@@ -88,7 +96,8 @@ class UserOut(OurBaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
-    age: Optional[int] = None
+    age: Optional[datetime] = None
+    phone: Optional[str] = None
     gender: Optional[Gender] = None
     active: Optional[bool] = None
     confirmed: Optional[bool] = None

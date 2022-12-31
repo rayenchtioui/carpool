@@ -11,7 +11,7 @@ from .error import add_error
 
 router = APIRouter(
     prefix="/review",
-    tags=['Reviews']
+    tags=['Review']
 )
 
 

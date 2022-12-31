@@ -83,8 +83,9 @@ async def get_user(id: int, db: Session = Depends(get_db)):
 
 
 @router.patch('/{id}', response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
-def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
-    user_to_update = db.query(models.User).filter(models.User.id == id)
+async def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    user_to_update = db.query(models.User).filter(
+        and_(models.User.id == id, current_user.id == id))
     db_user = user_to_update.first()
     if not db_user:
         return schemas.UserOut(
@@ -115,7 +116,7 @@ def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), 
             message="Something went wrong"
         )
     return schemas.UserOut(
-        **user_to_update.__dict__,
+        **db_user.__dict__,
         status=status.HTTP_200_OK,
         message="User updated successfully"
     )
