@@ -6,6 +6,7 @@ from ..database import get_db
 from ..routers.emailUtil import send_email
 from datetime import timedelta, datetime
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import insert, delete
 from ..config import settings
 from app import schemas, models, utils, enums, oauth2
 from .error import add_error
@@ -73,6 +74,25 @@ def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oaut
             status=status.HTTP_404_NOT_FOUND,
             message="No available pools"
         )
+    rows = db.query(models.Pooling).filter(
+        models.Pooling.date_depart < datetime.now()).all()
+    if rows:
+        for row in rows:
+            pooling_history = models.PoolingHisotry(
+                description=row.description,
+                date_depart=row.date_depart,
+                available_seats=row.available_seats,
+                availability=row.availability,
+                beg_dest=row.beg_dest,
+                end_dest=row.end_dest,
+                price=row.price,
+                driver_id=row.driver_id,
+                car_id=row.car_id)
+            db.add(pooling_history)
+            db.commit()
+    stmt = delete(models.Pooling).where(
+        models.Pooling.date_depart < datetime.now())
+    db.execute(stmt)
 
     pools = db.query(models.Pooling, models.User, models.Car).join(
         models.User, models.Pooling.driver_id == models.User.id, isouter=True).join(
@@ -112,7 +132,7 @@ def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oaut
     )
 
 
-@router.delete('/delete/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
+@ router.delete('/delete/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
 def delete_pool(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     # query to verify that the pool id exists and belongs to the current user logged in
     db_pool = db.query(models.Pooling).filter(
@@ -140,7 +160,7 @@ def delete_pool(id: int, db: Session = Depends(get_db), current_user=Depends(oau
     )
 
 
-@router.patch('/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
+@ router.patch('/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
 def update_pool(id: int, pool: schemas.EditPool, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
 
     pool_to_update = db.query(models.Pooling).filter(
