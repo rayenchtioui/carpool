@@ -76,3 +76,30 @@ def get_user_applied_pools(db: Session = Depends(get_db), current_user=Depends(o
         )
         pooling_user_list.append(pooling_user)
     return schemas.PoolsUserOut(pooling_list=pooling_user_list, message="success", status=200)
+
+
+@router.delete('cancel-pool/', response_model=schemas.PoolUserOut, status_code=status.HTTP_200_OK)
+def cancel_pool(pooling_id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    db_pool = db.query(models.PoolingUsers).filter(
+        and_(models.PoolingUsers.pooling_id == pooling_id, models.PoolingUsers.user_id == current_user.id)).first()
+    pool_to_delete = db_pool
+    if not db_pool:
+        return schemas.PoolUserOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="Pool not found!"
+        )
+    try:
+        db.delete(db_pool)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e)
+        return schemas.PoolUserOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.PoolUserOut(
+        **pool_to_delete.__dict__,
+        status=status.HTTP_202_ACCEPTED,
+        message="Pool deleted successfully"
+    )
