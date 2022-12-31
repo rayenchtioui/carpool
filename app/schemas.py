@@ -106,6 +106,12 @@ class UserOut(OurBaseModel):
     status: Optional[int] = None
 
 
+class UsersOut(OurBaseModel):
+    users_list: Optional[list[UserOut]] = []
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
 class UserDelete(OurBaseModel):
     password: str = Field(min_length=6)
     confirmed_password: str = Field(max_length=6)

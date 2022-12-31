@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import auth, user, car, pooling, review, poolUser
+from .routers import auth, user, car, pooling, review, poolUser, admin
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import SessionLocal, engine
 from app.models import Base
@@ -26,6 +26,7 @@ app.include_router(car.router)
 app.include_router(pooling.router)
 app.include_router(review.router)
 app.include_router(poolUser.router)
+app.include_router(admin.router)
 
 
 @app.get("/")

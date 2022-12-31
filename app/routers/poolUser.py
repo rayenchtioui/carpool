@@ -89,6 +89,9 @@ def cancel_pool(pooling_id: int, db: Session = Depends(get_db), current_user=Dep
             message="Pool not found!"
         )
     try:
+        db_pool = db.query(models.Pooling).filter(
+            models.Pooling.id == pooling_id).first()
+        db_pool.available_seats += 1
         db.delete(db_pool)
         db.commit()
     except SQLAlchemyError as e:
