@@ -16,5 +16,7 @@ class Pooling(Base):
     beg_dest = Column(Enum(City), nullable=False)
     end_dest = Column(Enum(City), nullable=False)
     price = Column(Float, nullable=False)
-    driver_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    car_id = Column(Integer, ForeignKey('cars.id'), nullable=False)
+    driver_id = Column(Integer, ForeignKey(
+        'users.id', ondelete='CASCADE'), nullable=False)
+    car_id = Column(Integer, ForeignKey(
+        'cars.id', ondelete='CASCADE'), nullable=False)
