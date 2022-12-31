@@ -76,6 +76,7 @@ def get_all_pools(db: Session = Depends(get_db)):
 @router.delete('/delete-user', status_code=status.HTTP_200_OK)
 def delete_user(id: int, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.id == id).first()
+    user_to_delete = db_user
     if not db_user:
         return schemas.UserOut(
             status=status.HTTP_404_NOT_FOUND,
@@ -91,7 +92,35 @@ def delete_user(id: int, db: Session = Depends(get_db)):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="There is a problem try again"
         )
-    return {
-        "status": status.HTTP_202_ACCEPTED,
-        "message": "account has been deleted successfully"
-    }
+    return schemas.UserOut(
+        **user_to_delete.__dict__,
+        status=status.HTTP_202_ACCEPTED,
+        message="account has been deleted successfully"
+    )
+
+
+@router.delete('/delete-pool/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
+def delete_pool(id: int, db: Session = Depends(get_db)):
+    db_pool = db.query(models.Pooling).filter(
+        models.Pooling.id == id).first()
+    pool_to_delete = db_pool
+    if not db_pool:
+        return schemas.PoolOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="Pool not found!"
+        )
+    try:
+        db.delete(db_pool)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e)
+        return schemas.PoolingOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.PoolOut(
+        **pool_to_delete.__dict__,
+        status=status.HTTP_202_ACCEPTED,
+        message="Pool deleted successfully"
+    )
