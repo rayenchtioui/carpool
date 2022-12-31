@@ -49,10 +49,49 @@ def get_all_users(db: Session = Depends(get_db)):
     if not db_users:
         return schemas.UsersOut(
             status=status.HTTP_404_NOT_FOUND,
-            message="No pools found!"
+            message="No users found!"
         )
     return schemas.UsersOut(
         users_list=[schemas.UserOut(**user.__dict__) for user in db_users],
         message="all users",
         status=status.HTTP_200_OK
     )
+
+
+@router.get('/all-pools', status_code=status.HTTP_200_OK)
+def get_all_pools(db: Session = Depends(get_db)):
+    db_pools = db.query(models.Pooling).all()
+    if not db_pools:
+        return {
+            "status": status.HTTP_404_NOT_FOUND,
+            "message": "No pools found!"
+        }
+    return {
+        "pool_list": [schemas.PoolOut(**pool.__dict__) for pool in db_pools],
+        "message": "all users",
+        "status": status.HTTP_200_OK
+    }
+
+
+@router.delete('/delete-user', status_code=status.HTTP_200_OK)
+def delete_user(id: int, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.id == id).first()
+    if not db_user:
+        return schemas.UserOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="user with id {0} is not found".format(id)
+        )
+    try:
+        db.delete(db_user)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.UserOut(
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="There is a problem try again"
+        )
+    return {
+        "status": status.HTTP_202_ACCEPTED,
+        "message": "account has been deleted successfully"
+    }
