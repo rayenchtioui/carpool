@@ -68,7 +68,7 @@ async def create_user(user: schemas.User, db: Session = Depends(get_db)):
 
 
 @router.get('/{id}', response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
-async def get_user(id: int, db: Session = Depends(get_db)):
+def get_user(id: int, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.id == id).first()
     if not db_user:
         return schemas.UserOut(
@@ -83,7 +83,7 @@ async def get_user(id: int, db: Session = Depends(get_db)):
 
 
 @router.patch('/{id}', response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
-async def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+def update_user(id: int, user: schemas.EditUser, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     user_to_update = db.query(models.User).filter(
         and_(models.User.id == id, current_user.id == id))
     db_user = user_to_update.first()

@@ -145,6 +145,8 @@ class EditPool(OurBaseModel):
     description: Optional[str]
     date_depart: Optional[datetime]
     available_seats: Optional[int] = Field(gt=0, lt=5)
+    availability: Optional[bool]
+    availability: Optional[bool]
     beg_dest: Optional[City]
     end_dest: Optional[City]
     price: Optional[float]
@@ -171,6 +173,7 @@ class PoolOut(OurBaseModel):
     description: Optional[str] = None
     date_depart: Optional[datetime] = None
     available_seats: Optional[int] = None
+    availability: Optional[bool]
     beg_dest: Optional[City] = None
     end_dest: Optional[City] = None
     price: Optional[float] = None
@@ -187,10 +190,10 @@ class PoolsOut(OurBaseModel):
 
 
 class Pooling(OurBaseModel):
-
     description: Optional[str] = None
     date_depart: Optional[datetime] = None
     available_seats: Optional[int] = None
+    availability: Optional[bool]
     beg_dest: Optional[City] = None
     end_dest: Optional[City] = None
     price: Optional[float] = None
@@ -201,6 +204,34 @@ class Pooling(OurBaseModel):
 
 class PoolingOut(OurBaseModel):
     pooling_list: Optional[list[Pooling]] = []
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
+class PoolUser(OurBaseModel):
+    pooling_id: int
+    user_id: int
+
+
+class PoolUserOut(OurBaseModel):
+    pooling_id: Optional[int] = None
+    user_id: Optional[int] = None
+    message: Optional[str] = None
+    status: Optional[int] = None
+
+
+class PoolingUserOut(OurBaseModel):
+    pooling_id: Optional[int] = None
+    user_id: Optional[int] = None
+    driver_name: Optional[str] = None
+    driver_last_name: Optional[str] = None
+    driver_phone: Optional[str] = None
+    car_name: Optional[str] = None
+    price: Optional[int] = None
+
+
+class PoolsUserOut(OurBaseModel):
+    pooling_list: Optional[list[PoolingUserOut]] = []
     message: Optional[str] = None
     status: Optional[int] = None
 

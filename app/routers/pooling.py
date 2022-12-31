@@ -66,7 +66,8 @@ def get_users_pools(db: Session = Depends(get_db), current_user=Depends(oauth2.g
 
 @router.get('/pools', response_model=schemas.PoolingOut, status_code=status.HTTP_200_OK)
 def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
-    db_pooling = db.query(models.Pooling).all()
+    db_pooling = db.query(models.Pooling).filter(
+        models.Pooling.availability == True).all()
     if not db_pooling:
         return schemas.PoolingOut(
             status=status.HTTP_404_NOT_FOUND,
@@ -79,6 +80,7 @@ def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oaut
         models.Pooling.description,
         models.Pooling.date_depart,
         models.Pooling.available_seats,
+        models.Pooling.availability,
         models.Pooling.beg_dest,
         models.Pooling.end_dest,
         models.Pooling.price,
@@ -94,6 +96,7 @@ def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oaut
         pooling.description = result.description
         pooling.date_depart = result.date_depart
         pooling.available_seats = result.available_seats
+        pooling.availability = result.availability
         pooling.beg_dest = result.beg_dest
         pooling.end_dest = result.end_dest
         pooling.price = result.price
