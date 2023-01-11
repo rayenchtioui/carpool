@@ -12,6 +12,7 @@ ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_min
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
+oauth2_scheme_admin = OAuth2PasswordBearer(tokenUrl='admin/login')
 
 
 def create_access_token(data: dict):
@@ -50,13 +51,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 
-def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
+def get_current_admin(token: str = Depends(oauth2_scheme_admin), db: Session = Depends(database.get_db)):
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
     token = verify_access_token(token, credentials_exception)
     admin = db.query(models.Admin).filter(models.Admin.id == token.id).first()
-    if not user:
+    if not admin:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=f"Please check your account !", headers={"WWW-Authenticate": "Bearer"})
 

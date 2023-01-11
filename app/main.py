@@ -8,6 +8,8 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
+app_admin = FastAPI()
+app_admin.include_router(admin.router)
 origins = [
     "*"
 ]
@@ -26,7 +28,6 @@ app.include_router(car.router)
 app.include_router(pooling.router)
 app.include_router(review.router)
 app.include_router(poolUser.router)
-app.include_router(admin.router)
 
 
 @app.get("/")
