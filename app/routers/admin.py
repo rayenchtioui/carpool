@@ -44,7 +44,7 @@ def login_admin(admin_credentials: OAuth2PasswordRequestForm = Depends(), db: Se
 
 
 @router.get('/all-users', response_model=schemas.UsersOut, status_code=status.HTTP_200_OK)
-def get_all_users(db: Session = Depends(get_db)):
+def get_all_users(db: Session = Depends(get_db), current_admin=Depends(oauth2.get_current_admin)):
     db_users = db.query(models.User).all()
     if not db_users:
         return schemas.UsersOut(
@@ -59,7 +59,7 @@ def get_all_users(db: Session = Depends(get_db)):
 
 
 @router.get('/all-pools', status_code=status.HTTP_200_OK)
-def get_all_pools(db: Session = Depends(get_db)):
+def get_all_pools(db: Session = Depends(get_db), current_admin=Depends(oauth2.get_current_admin)):
     db_pools = db.query(models.Pooling).all()
     if not db_pools:
         return {
@@ -73,8 +73,8 @@ def get_all_pools(db: Session = Depends(get_db)):
     }
 
 
-@router.delete('/delete-user', status_code=status.HTTP_200_OK)
-def delete_user(id: int, db: Session = Depends(get_db)):
+@router.delete('/delete-user', response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
+def delete_user(id: int, db: Session = Depends(get_db), current_admin=Depends(oauth2.get_current_admin)):
     db_user = db.query(models.User).filter(models.User.id == id).first()
     user_to_delete = db_user
     if not db_user:
@@ -100,7 +100,7 @@ def delete_user(id: int, db: Session = Depends(get_db)):
 
 
 @router.delete('/delete-pool/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
-def delete_pool(id: int, db: Session = Depends(get_db)):
+def delete_pool(id: int, db: Session = Depends(get_db), current_admin=Depends(oauth2.get_current_admin)):
     db_pool = db.query(models.Pooling).filter(
         models.Pooling.id == id).first()
     pool_to_delete = db_pool
@@ -123,4 +123,31 @@ def delete_pool(id: int, db: Session = Depends(get_db)):
         **pool_to_delete.__dict__,
         status=status.HTTP_202_ACCEPTED,
         message="Pool deleted successfully"
+    )
+
+
+@router.delete('/delete-review/{id}', response_model=schemas.ReviewOut, status_code=status.HTTP_200_OK)
+def delete_review(id: int, db: Session = Depends(get_db), current_admin=Depends(oauth2.get_current_admin)):
+    db_review = db.query(models.Review).filter(
+        models.Review.id == id).first()
+    review_to_delete = db_review
+    if not db_review:
+        return schemas.ReviewOut(
+            status=status.HTTP_404_NOT_FOUND,
+            message="Review not found!"
+        )
+    try:
+        db.delete(db_review)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        add_error(e)
+        return schemas.ReviewOut(
+            status=status.HTTP_400_BAD_REQUEST,
+            message="Something went wrong"
+        )
+    return schemas.ReviewOut(
+        **review_to_delete.__dict__,
+        status=status.HTTP_202_ACCEPTED,
+        message="Review deleted successfully"
     )
