@@ -132,7 +132,7 @@ def get_available_pools(db: Session = Depends(get_db), current_user=Depends(oaut
     )
 
 
-@ router.delete('/delete/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
+@router.delete('/delete/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
 def delete_pool(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     # query to verify that the pool id exists and belongs to the current user logged in
     db_pool = db.query(models.Pooling).filter(
@@ -160,7 +160,7 @@ def delete_pool(id: int, db: Session = Depends(get_db), current_user=Depends(oau
     )
 
 
-@ router.patch('/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
+@router.patch('/{id}', response_model=schemas.PoolOut, status_code=status.HTTP_200_OK)
 def update_pool(id: int, pool: schemas.EditPool, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
 
     pool_to_update = db.query(models.Pooling).filter(

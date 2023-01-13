@@ -13,7 +13,7 @@ from .confirmationCode import add_confirmation_code
 
 
 router = APIRouter(
-    prefix="/users",
+    prefix="/user",
     tags=['Users']
 )
 

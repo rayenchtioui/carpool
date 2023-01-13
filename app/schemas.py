@@ -36,15 +36,16 @@ class EditReview(OurBaseModel):
 
 
 class Car(OurBaseModel):
-    car_name: str = Field(min_length=2)
-    car_type: str = Field(min_length=4)
-    description: str = Field(min_length=4)
+    car_name: str = Field(min_length=2, example="BMW")
+    car_type: str = Field(min_length=4, exmaple="luxe")
+    description: str = Field(min_length=4, exmaple="very comfortable")
 
 
 class EditCar(OurBaseModel):
-    car_name: Optional[str] = Field(min_length=2)
-    car_type: Optional[str] = Field(min_length=4)
-    description: Optional[str] = Field(min_length=4)
+    car_name: Optional[str] = Field(min_length=2, example="Mercedes")
+    car_type: Optional[str] = Field(min_length=4, example="luxe")
+    description: Optional[str] = Field(
+        min_length=4, example="very comfortable")
 
 
 class CarOut(OurBaseModel):
@@ -64,19 +65,21 @@ class CarsOut(OurBaseModel):
 
 def validate_age(dt: datetime):
     sixteen_years_ago = datetime.now() - timedelta(days=365 * 16)
-    return dt > sixteen_years_ago
+    onehundred_years_ago = datetime.now() - timedelta(days=365 * 100)
+    return dt > sixteen_years_ago and dt < onehundred_years_ago
 
 
 class User(OurBaseModel):
-    cin: str = Field(regex='^[0-9]{8}$')
+    cin: str = Field(regex='^[0-9]{8}$', example='12345678')
     first_name: str = Field(min_length=3, regex='^[a-zA-Z ]*$', example='flen')
     last_name: str = Field(
         min_length=3, regex='^[a-zA-Z ]*$', example='ben foulen')
-    password: str = Field(min_length=6)
-    confirmed_password: str = Field(min_length=6)
+    password: str = Field(min_length=6, example='password')
+    confirmed_password: str = Field(min_length=6, example='password')
     email: EmailStr
-    age: datetime = Field(validator=validate_age)
-    phone: str = Field(regex='^[0-9]{8}$')
+    age: datetime = Field(validator=validate_age,
+                          example='2000-01-01T00:00:00Z')
+    phone: str = Field(regex='^[0-9]{8}$', exmaple='99222333')
     gender: Gender
 
 
@@ -85,10 +88,11 @@ class EditUser(OurBaseModel):
         min_length=3, regex='^[a-zA-Z ]*$', example='flen')
     last_name: Optional[str] = Field(
         min_length=3, regex='^[a-zA-Z ]*$', example='ben foulen')
-    cin: Optional[str] = Field(regex='^[0-9]{8}$')
+    cin: Optional[str] = Field(regex='^[0-9]{8}$', example='12345678')
     email: Optional[EmailStr]
-    age: Optional[datetime] = Field(validator=validate_age)
-    phone: Optional[str] = Field(regex='^[0-9]{8}$')
+    age: Optional[datetime] = Field(
+        validator=validate_age, example='2000-01-01T00:00:00Z')
+    phone: Optional[str] = Field(regex='^[0-9]{8}$', exmaple='99222333')
 
 
 class UserOut(OurBaseModel):
@@ -128,7 +132,7 @@ class Pool(OurBaseModel):
     available_seats: int = Field(gt=0, lt=5)
     beg_dest: City
     end_dest: City
-    price: float
+    price: float = Field(exmaple='34')
     car_id: int
 
     @validator('date_depart')
@@ -147,31 +151,15 @@ class Pool(OurBaseModel):
         return values
 
 
-class EditPool(OurBaseModel):
+class EditPool(Pool):
     description: Optional[str]
     date_depart: Optional[datetime]
     available_seats: Optional[int] = Field(gt=0, lt=5)
-    availability: Optional[bool]
     availability: Optional[bool]
     beg_dest: Optional[City]
     end_dest: Optional[City]
     price: Optional[float]
     car_id: Optional[int]
-
-    @validator('date_depart')
-    def validate_date_depart(cls, value):
-        if value and value.tzinfo is None:
-            value = value.replace(tzinfo=timezone.utc)
-        if value and value < datetime.utcnow().replace(tzinfo=timezone.utc):
-            raise ValueError("date_depart must not be in the past")
-        return value
-
-    @root_validator()
-    def validate_beg_dest_and_end_dest(cls, values):
-        if values.get('beg_dest') == values.get('end_dest'):
-            raise ValueError(
-                "beg_dest and end_dest must not have the same value")
-        return values
 
 
 class PoolOut(OurBaseModel):
