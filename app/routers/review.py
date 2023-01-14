@@ -60,8 +60,8 @@ def get_reviews(db: Session = Depends(get_db), current_user=Depends(oauth2.get_c
             "message": "No reviews were found yet!"
         }
     return schemas.ReviewsOut(
-        car_list=[schemas.ReviewOut(**review.__dict__)
-                  for review in db_reviews],
+        review_list=[schemas.ReviewOut(**review.__dict__)
+                     for review in db_reviews],
         message="all Reviews",
         status=status.HTTP_200_OK
     )
