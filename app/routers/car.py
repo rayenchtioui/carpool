@@ -1,5 +1,6 @@
+from operator import and_
 from fastapi import APIRouter, Depends, status
-from app import schemas, models, utils, enums, oauth2
+from app import schemas, models, oauth2
 from .error import add_error
 from sqlalchemy.orm import Session
 from ..database import get_db

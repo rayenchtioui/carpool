@@ -9,3 +9,4 @@ from .review import Review
 from .poolingHistory import PoolingHisotry
 from .poolingUser import PoolingUsers
 from .admin import Admin
+from .JWT_blacklist import JWTblacklist

@@ -1,8 +1,5 @@
-from sqlalchemy import Date, Boolean, Column, ForeignKey, Integer, String, DateTime, Enum, Float
-from sqlalchemy.orm import relationship
-
+from sqlalchemy import Column, ForeignKey, Integer
 from app.database import Base
-from app.enums import *
 
 
 class PoolingUsers(Base):

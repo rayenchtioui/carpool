@@ -1,9 +1,6 @@
-import datetime
-from sqlalchemy import Date, Boolean, Column, ForeignKey, Integer, String, DateTime, Enum, Float
-from sqlalchemy.orm import relationship
-
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Enum, Float
 from app.database import Base
-from app.enums import *
+from app.enums import City
 
 
 class Pooling(Base):

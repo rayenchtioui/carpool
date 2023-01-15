@@ -4,11 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import SessionLocal, engine
 from app.models import Base
 
-Base.metadata.create_all(bind=engine)
 app = FastAPI()
-
-
 app_admin = FastAPI()
+
 app_admin.include_router(admin.router)
 origins = [
     "*"

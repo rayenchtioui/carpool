@@ -1,11 +1,14 @@
 from sqlalchemy import and_
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
+from app.models.JWT_blacklist import JWTblacklist
+from app.routers.error import add_error
 from . import schemas, database, models
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .config import settings
+from .database import get_db
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
@@ -23,7 +26,20 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
-def verify_access_token(token: str, credentials_exception):
+def verify_access_token(token: str, db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=f"Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"}
+    )
+    try:
+        blacklisted_token = db.query(JWTblacklist).filter(JWTblacklist.token == token).first()
+    except Exception as e:
+        add_error(e, db)
+        raise credentials_exception
+
+    if blacklisted_token:
+        raise credentials_exception
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
         id = payload['user']['id']
@@ -38,10 +54,7 @@ def verify_access_token(token: str, credentials_exception):
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
-    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                          detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
-
-    token = verify_access_token(token, credentials_exception)
+    token = verify_access_token(token, db)
     user = db.query(models.User).filter(
         and_(models.User.id == token.id, models.User.confirmed)).first()
     if not user:

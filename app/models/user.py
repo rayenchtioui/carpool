@@ -1,10 +1,8 @@
 import datetime
-from sqlalchemy import Date, Boolean, Column, ForeignKey, Integer, String, DateTime, Enum, Float
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship
-
 from app.database import Base
-from app.enums import *
-from .review import Review
+from app.enums import Gender
 
 
 class User(Base):

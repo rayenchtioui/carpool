@@ -1,14 +1,13 @@
-import uuid
-from operator import and_, or_
+from operator import and_
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session
 from ..database import get_db
 from ..routers.emailUtil import send_email
-from datetime import timedelta, datetime
+from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import insert, delete
 from ..config import settings
-from app import schemas, models, utils, enums, oauth2
+from app import schemas, models, oauth2
 from .error import add_error
 
 router = APIRouter(

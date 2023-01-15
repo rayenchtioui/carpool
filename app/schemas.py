@@ -8,6 +8,9 @@ class OurBaseModel(BaseModel):
     class Config:
         orm_mode = True
 
+class Logout(OurBaseModel):
+    message: Optional[str] = None
+    status_code: Optional[int] = None
 
 class Review(OurBaseModel):
     description: str = Field(min_length=6)

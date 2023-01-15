@@ -163,3 +163,21 @@ def confirmAccount(request: schemas.ConfirmAccount, db: Session = Depends(get_db
         message="Account Confirmed",
         status=status.HTTP_200_OK
     )
+
+@router.post('/logout', response_model=schemas.Logout)
+def logout_user(db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user), token: str = Depends(oauth2.oauth2_scheme)):
+    try:
+        blacklisted_token = models.JWTblacklist(token=token, expired_on=datetime.utcnow())
+        db.add(blacklisted_token)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        add_error(e, db)
+        return schemas.Logout(
+            message="There is a problem, try again",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+    return schemas.Logout(
+        message="Logout successfully",
+        status_code=status.HTTP_200_OK
+    )

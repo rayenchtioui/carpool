@@ -2,13 +2,11 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from ..database import get_db
-from datetime import timedelta, datetime
 from sqlalchemy.exc import SQLAlchemyError
-from .resetCode import add_reset_code, send_reset_code_email, get_reset_password_code, reset_password, disable_reset_code
 from ..config import settings
 from app import oauth2
 from .error import add_error
-from app import schemas, models, utils, enums
+from app import schemas, models, utils
 
 router = APIRouter(
     prefix="/admin",
@@ -73,7 +71,7 @@ def get_all_pools(db: Session = Depends(get_db), current_admin=Depends(oauth2.ge
     }
 
 
-@router.delete('/delete-user', status_code=status.HTTP_200_OK)
+@router.delete('/delete-user/{id}', status_code=status.HTTP_200_OK)
 def delete_user(id: int, db: Session = Depends(get_db), current_admin=Depends(oauth2.get_current_admin)):
     db_user = db.query(models.User).filter(models.User.id == id).first()
     user_to_delete = db_user

@@ -1,9 +1,6 @@
-import datetime
-from sqlalchemy import Date,Boolean, Column, ForeignKey, Integer, String,DateTime,Enum,Float
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-
 from app.database import Base
-from app.enums import *
 
 class Car(Base):
     __tablename__ = 'cars'
