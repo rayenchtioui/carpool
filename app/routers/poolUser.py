@@ -48,7 +48,7 @@ def apply_for_pool(pooling_id: int, db: Session = Depends(get_db), current_user=
     )
 
 
-@router.get('pools-applied-for/', response_model=schemas.PoolsUserOut, status_code=status.HTTP_200_OK)
+@router.get('/pools-applied-for', response_model=schemas.PoolsUserOut, status_code=status.HTTP_200_OK)
 def get_user_applied_pools(db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     db_pool = db.query(models.PoolingUsers).filter(
         models.PoolingUsers.user_id == current_user.id)
@@ -78,7 +78,7 @@ def get_user_applied_pools(db: Session = Depends(get_db), current_user=Depends(o
     return schemas.PoolsUserOut(pooling_list=pooling_user_list, message="success", status=200)
 
 
-@router.delete('cancel-pool/', response_model=schemas.PoolUserOut, status_code=status.HTTP_200_OK)
+@router.delete('/cancel-pool', response_model=schemas.PoolUserOut, status_code=status.HTTP_200_OK)
 def cancel_pool(pooling_id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     db_pool = db.query(models.PoolingUsers).filter(
         and_(models.PoolingUsers.pooling_id == pooling_id, models.PoolingUsers.user_id == current_user.id)).first()

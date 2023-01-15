@@ -74,7 +74,7 @@ def get_all_pools(db: Session = Depends(get_db), current_admin=Depends(oauth2.ge
 
 
 @router.delete('/delete-user', status_code=status.HTTP_200_OK)
-def delete_user(id: int, db: Session = Depends(get_db)):
+def delete_user(id: int, db: Session = Depends(get_db), current_admin=Depends(oauth2.get_current_admin)):
     db_user = db.query(models.User).filter(models.User.id == id).first()
     user_to_delete = db_user
     if not db_user:

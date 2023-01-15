@@ -50,10 +50,27 @@ def create_review(review: schemas.Review, db: Session = Depends(get_db), current
     )
 
 
-@router.get('/get_reviews', response_model=schemas.ReviewsOut, status_code=status.HTTP_200_OK)
+@router.get('/get-my-reviews', response_model=schemas.ReviewsOut, status_code=status.HTTP_200_OK)
 def get_reviews(db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     db_reviews = db.query(models.Review).filter(
         models.Review.reviewer_id == current_user.id).all()
+    if not db_reviews:
+        return {
+            "status": status.HTTP_404_NOT_FOUND,
+            "message": "No reviews were found yet!"
+        }
+    return schemas.ReviewsOut(
+        review_list=[schemas.ReviewOut(**review.__dict__)
+                     for review in db_reviews],
+        message="all Reviews",
+        status=status.HTTP_200_OK
+    )
+
+
+@router.get('/get-reviews-on-user', response_model=schemas.ReviewsOut, status_code=status.HTTP_200_OK)
+def get_reviews_on_user(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+    db_reviews = db.query(models.Review).filter(
+        models.Review.user_id == id).all()
     if not db_reviews:
         return {
             "status": status.HTTP_404_NOT_FOUND,
@@ -100,7 +117,7 @@ def update_review(id: int, review: schemas.EditReview, db: Session = Depends(get
 
 
 @router.delete("/delete/{id}", response_model=schemas.ReviewOut, status_code=status.HTTP_200_OK)
-def delete_car(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
+def delete_review(id: int, db: Session = Depends(get_db), current_user=Depends(oauth2.get_current_user)):
     # query to verify that the review id exists and belongs to current user logged in
     db_review = db.query(models.Review).filter(
         and_(models.Review.id == id, models.Review.reviewer_id == current_user.id)).first()
